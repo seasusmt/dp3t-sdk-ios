@@ -59,6 +59,22 @@ class DP3TSDK {
             }
         }
     }
+    
+    private var forcedWifiSync : Bool{
+        didSet {
+            defaults.forcedWifiSync = forcedWifiSync
+        }
+    }
+    
+    /// keeps track of  SDK state
+    private var interoperability: Interoperability{
+        didSet {
+            defaults.interopPossible = interoperability.interopPossible
+            defaults.interopState = interoperability.interopState.rawValue
+            defaults.interopCountries = interoperability.interopCountries
+            defaults.interopSelectedCountries = interoperability.interopSelectedCountries
+        }
+    }
 
     /// Initializer
     /// - Parameters:
@@ -129,6 +145,13 @@ class DP3TSDK {
                                   lastSync: defaults.lastSync,
                                   infectionStatus: InfectionStatus.getInfectionState(from: exposureDayStorage),
                                   backgroundRefreshState: UIApplication.shared.backgroundRefreshStatus)
+        
+        self.forcedWifiSync = defaults.forcedWifiSync
+        
+        self.interoperability = Interoperability(interopPossible: defaults.interopPossible,
+                                                 interopState: InteroperabilityState(rawValue: defaults.interopState) ?? .disabled,
+                                                 interopCountries: defaults.interopCountries,
+                                                 interopSelectedCountries: defaults.interopSelectedCountries)
 
         self.tracer.delegate = self
         self.synchronizer.delegate = self
@@ -220,6 +243,38 @@ class DP3TSDK {
         log.log("retreiving status from SDK")
         return state
     }
+    
+    /// get the current status of the SDK
+    var forcedWifiSyncStatus: Bool {
+        log.log("retreiving forced wifi sync state from SDK")
+        return forcedWifiSync
+    }
+    
+    func setForcedWifiSyncStatus(forcedWifiSyncStatus: Bool) {
+        forcedWifiSync = forcedWifiSyncStatus
+    }
+    
+    /// get the current status of the SDK
+    var interoperabilityStatus: Interoperability {
+        log.log("retreiving interoperability status from SDK")
+        return interoperability
+    }
+    
+    func setInteroperabilityPossible(interopPossible: Bool) {
+        interoperability.interopPossible = interopPossible
+    }
+    
+    func setInteroperabilityState(interopState: InteroperabilityState) {
+        interoperability.interopState = interopState
+    }
+    
+    func setInteroperabilityCountries(interopCountries: [String]) {
+        interoperability.interopCountries = interopCountries
+    }
+    
+    func setInteroperabilitySelectedCountries(interopSelectedCountries: [String]) {
+        interoperability.interopSelectedCountries = interopSelectedCountries
+    }
 
     /// tell the SDK that the user was exposed
     /// This will stop tracing
@@ -273,8 +328,23 @@ class DP3TSDK {
                 let startingFrom = Date(timeIntervalSince1970: Double(oldestRollingStartNumber) *  10 * .minute - .day)
 
                 mutableKeys.append(contentsOf: self.diagnosisKeysProvider.getFakeKeys(count: fakeKeyCount, startingFrom: startingFrom))
+                
+                var countries = ["MT"]
+                if(DP3TTracing.interoperabilityStatus.interopPossible){
+                    //Retrieve allowed country codes
+                    switch DP3TTracing.interoperabilityStatus.interopState {
+                    case .eu:
+                        countries += DP3TTracing.interoperabilityStatus.interopCountries
+                    case .countries:
+                        countries += DP3TTracing.interoperabilityStatus.interopSelectedCountries
+                    case .disabled: fallthrough
+                    default:
+                        break
+                    }
+                }
 
                 let model = ExposeeListModel(gaenKeys: mutableKeys,
+                                             countries: countries,
                                              fake: isFakeRequest)
 
                 self.service.addExposeeList(model, authentication: authentication) { [weak self] result in
@@ -311,6 +381,11 @@ class DP3TSDK {
     /// reset the SDK
     func reset() {
         state.infectionStatus = .healthy
+        forcedWifiSync = false
+        interoperability.interopPossible = false
+        interoperability.interopState = .disabled
+        interoperability.interopCountries = []
+        interoperability.interopSelectedCountries = []
         log.trace()
         stopTracing()
         defaults.reset()

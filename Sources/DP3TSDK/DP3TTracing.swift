@@ -104,6 +104,46 @@ public enum DP3TTracing {
         instancePrecondition()
         return instance.status
     }
+    
+    /// get the current status of the SDK
+    public static var forcedWifiSyncStatus: Bool {
+        instancePrecondition()
+        return instance.forcedWifiSyncStatus
+    }
+    
+    public static func setForcedWifiSyncStatus(forcedWifiSync: Bool) {
+        instance.setForcedWifiSyncStatus(forcedWifiSyncStatus: forcedWifiSync)
+    }
+    
+    /// get the current status of the SDK
+    public static var interoperabilityStatus: Interoperability {
+        instancePrecondition()
+        return instance.interoperabilityStatus
+    }
+    
+    public static func setInteroperabilityPossible(interopPossible: Bool) {
+        if(interopPossible != interoperabilityStatus.interopPossible) {
+            instance.setInteroperabilityPossible(interopPossible: interopPossible)
+        }
+    }
+    
+    public static func setInteroperabilityState(interopState: InteroperabilityState) {
+        if(interopState != interoperabilityStatus.interopState) {
+            instance.setInteroperabilityState(interopState: interopState)
+        }
+    }
+    
+    public static func setInteroperabilityCountries(interopCountries: [String]) {
+        if(!interopCountries.elementsEqual(interoperabilityStatus.interopCountries)) {
+            instance.setInteroperabilityCountries(interopCountries: interopCountries)
+        }
+    }
+    
+    public static func setInteroperabilitySelectedCountries(interopSelectedCountries: [String]) {
+        if(!interopSelectedCountries.elementsEqual(interoperabilityStatus.interopSelectedCountries)) {
+            instance.setInteroperabilitySelectedCountries(interopSelectedCountries: interopSelectedCountries)
+        }
+    }
 
     /// tell the SDK that the user was exposed
     /// - Parameters:

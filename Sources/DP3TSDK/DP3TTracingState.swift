@@ -83,6 +83,24 @@ public struct TracingState: Equatable {
     public var backgroundRefreshState: UIBackgroundRefreshStatus
 }
 
+public enum InteroperabilityState: Int {
+    case disabled = 1
+    case countries = 2
+    case eu = 3
+}
+
+/// The state of the API
+public struct Interoperability: Equatable {
+    /// Allows interoperability fucntionality within the SDK
+    public var interopPossible: Bool
+    /// The state of the interoperability functionality
+    public var interopState: InteroperabilityState
+    /// The default countries for use in the 'eu' state
+    public var interopCountries: [String]
+    /// The user selected countries for use in the 'countries' state
+    public var interopSelectedCountries: [String]
+}
+
 /// Result of a sync
 public enum SyncResult: Equatable {
     /// Sync was successful

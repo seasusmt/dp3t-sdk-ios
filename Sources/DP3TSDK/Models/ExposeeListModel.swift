@@ -22,6 +22,8 @@ struct CodableDiagnosisKey: Codable, Equatable {
 struct ExposeeListModel: Encodable {
     /// Diagnosis keys
     let gaenKeys: [CodableDiagnosisKey]
+    
+    let countries: [String]
 
     let fake: Bool
 
@@ -29,11 +31,11 @@ struct ExposeeListModel: Encodable {
         var container = encoder.container(keyedBy: CodingKeys.self)
         // Encode key
         try container.encode(gaenKeys, forKey: .gaenKeys)
-
+        try container.encode(countries, forKey: .countries)
         try container.encode(fake ? 1 : 0, forKey: .fake)
     }
 
     enum CodingKeys: CodingKey {
-        case gaenKeys, fake
+        case gaenKeys, countries, fake
     }
 }

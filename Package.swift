@@ -5,7 +5,7 @@ import PackageDescription
 let package = Package(
     name: "DP3TSDK",
     platforms: [
-        .iOS("13.7"),
+        .iOS("14"),
     ],
     products: [
         .library(
@@ -16,6 +16,7 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/IBM-Swift/Swift-JWT.git", from: "3.6.1"),
         .package(url: "https://github.com/weichsel/ZIPFoundation/", .upToNextMajor(from: "0.9.0")),
+        .package(url: "https://github.com/ashleymills/Reachability.swift", .upToNextMajor(from: "5.1.0")),
     ],
     targets: [
         .target(

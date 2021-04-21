@@ -26,6 +26,15 @@ protocol DefaultStorage {
     var parameters: DP3TParameters { get set }
 
     var exposureDetectionDates: [Date] { get set }
+    
+    /// User preference for sync on networks other than WiFi
+    var forcedWifiSync: Bool { get set }
+    
+    /// Parameters for interoperability
+    var interopPossible: Bool { get set }
+    var interopState: Int { get set }
+    var interopCountries: [String] { get set }
+    var interopSelectedCountries: [String] { get set }
 
     func reset()
 }
@@ -52,6 +61,26 @@ class Default: DefaultStorage {
 
     @Persisted(userDefaultsKey: "org.dpppt.exposureDetectionDates", defaultValue: [])
     var exposureDetectionDates: [Date]
+    
+    /// User preference for sync on networks other than WiFi
+    @Persisted(userDefaultsKey: "org.dpppt.forcedWifiSync", defaultValue: false)
+    var forcedWifiSync: Bool
+    
+    /// stores if interoperability is possible
+    @Persisted(userDefaultsKey: "org.dpppt.interopPossible", defaultValue: false)
+    var interopPossible: Bool
+    
+    /// stores the interoperability state
+    @Persisted(userDefaultsKey: "org.dpppt.interopState", defaultValue: 1)
+    var interopState: Int
+    
+    /// stores the interoperability countries for use in the 'eu' state
+    @Persisted(userDefaultsKey: "org.dpppt.interopCountries", defaultValue: [])
+    var interopCountries: [String]
+    
+    /// stores the user selected countries for use in the 'countries' state
+    @Persisted(userDefaultsKey: "org.dpppt.interopSelectedCountries", defaultValue: [])
+    var interopSelectedCountries: [String]
 
     /// Parameters
     private func saveParameters(_ parameters: DP3TParameters) {
@@ -108,6 +137,11 @@ class Default: DefaultStorage {
         lastSync = nil
         didMarkAsInfected = false
         lastKeyBundleTag = nil
+        forcedWifiSync = false
+        interopPossible = false
+        interopState = 1
+        interopCountries = []
+        interopSelectedCountries = []
     }
 }
 

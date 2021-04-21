@@ -30,19 +30,22 @@ struct ExposeeEndpoint {
         baseURL.appendingPathComponent(version)
     }
 
-    /// Get the URL for the exposed people endpoint for a given lastKeyBundleTag
+    /// Get the URL for the exposed people endpoint for a given lastKeyBundleTag and country codes
     /// - Parameters:
     ///  - lastKeyBundleTag: last published key tag if one is stored
-    func getExposee(lastKeyBundleTag: String?) -> URL {
+    ///  - countries: list of country codes to filter keys with if interoperability is enabled
+    func getExposee(lastKeyBundleTag: String?, countries: [String]) -> URL {
         let url = baseURLVersionned.appendingPathComponent("gaen")
             .appendingPathComponent("exposed")
 
         var urlComponents = URLComponents(url: url, resolvingAgainstBaseURL: false)
+        urlComponents?.queryItems = []
+        
         if let lastKeyBundleTag = lastKeyBundleTag {
-            urlComponents?.queryItems = [
-                URLQueryItem(name: "lastKeyBundleTag", value: lastKeyBundleTag)
-            ]
+            urlComponents?.queryItems?.append(URLQueryItem(name: "lastKeyBundleTag", value: lastKeyBundleTag))
         }
+        
+        urlComponents?.queryItems?.append(URLQueryItem(name: "countries", value: countries.joined(separator: ",")))
 
         guard let finalUrl = urlComponents?.url else {
             fatalError("can't create URLComponents url")

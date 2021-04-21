@@ -10,6 +10,7 @@
 
 import Foundation
 import UIKit.UIApplication
+import Reachability
 
 /// A delegate used to respond on DP3T events
 protocol KnownCasesSynchronizerDelegate: class {
@@ -120,8 +121,31 @@ class KnownCasesSynchronizer {
     private func internalSync(now: Date = Date(), callback: Callback?) {
         logger.trace()
         isCancelled = false
+        
+        //Check if sync can proceed based on wifi sync user preference
+        let reachability = try! Reachability()
+        if(DP3TTracing.forcedWifiSyncStatus && reachability.connection != .wifi)
+        {
+            logger.log("skipping sync since forced wifi sync is enabled and wifi is not present")
+            callback?(.skipped)
+            return
+        }
 
         let lastKeyBundleTag = defaults.lastKeyBundleTag
+        
+        var countries = ["MT"]
+        if(DP3TTracing.interoperabilityStatus.interopPossible){
+            //Retrieve allowed country codes
+            switch DP3TTracing.interoperabilityStatus.interopState {
+            case .eu:
+                countries += DP3TTracing.interoperabilityStatus.interopCountries
+            case .countries:
+                countries += DP3TTracing.interoperabilityStatus.interopSelectedCountries
+            case .disabled: fallthrough
+            default:
+                break
+            }
+        }
 
         guard descriptor.mode == .test || timingManager.shouldDetect(now: now) else {
             logger.log("skipping sync since shouldDetect returned false")
@@ -129,7 +153,7 @@ class KnownCasesSynchronizer {
             return
         }
 
-        dataTask = service.getExposee(lastKeyBundleTag: lastKeyBundleTag) { [weak self] (result) in
+        dataTask = service.getExposee(lastKeyBundleTag: lastKeyBundleTag, countries: countries) { [weak self] (result) in
             guard let self = self else { return }
             guard self.isCancelled == false else {
                 return
